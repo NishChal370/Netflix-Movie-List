@@ -1,0 +1,30 @@
+image: node:10
+ 
+cache:
+  paths:
+    - ./front/ui/node_modules/
+ 
+before_script:
+  - cd ./front/ui    # enter the React app directory
+  - rm -rf build     # remove the existing build
+  - CI=false npm install     # install required packages
+ 
+pages:
+  stage: deploy
+  environment: Production
+  script:
+    - CI=false npm run build     # build the React app, set CI=false because CI=true treats all warnings as errors
+    - cp build/index.html build/404.html     # reroute to index
+    - ls
+    - cd ..
+    - cd ..      # return to project root directory
+    - mkdir public       # make public directory in root for deployment due to artifact path only allowing /public
+    - ls
+    - mv ./front/ui/build/* public       # move build contents to new /public directory
+    - export
+  artifacts:
+    paths:
+      - public       # only allow paths in project root directory for some reason
+  only:
+    refs:
+      - master       # deploy contents in master branch
